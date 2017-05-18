@@ -7,15 +7,15 @@ paginate: 5
 language: 'en-uk'
 
 # Website info
-name: 'Technical knowledge for everyone posting by JongWoo Yoon'
-description: "Application developer from somewhere"
+name: 'JongWoo Yoon'
+description: "Technical knowledge for everyone"
 
 # Author's info
 author: 'JongWoo Yoon'
 # edit 'categories' in the front matter of every post to match this username
 nickname: kovermino
-bio: 'A paranormal expert and his daughter bunk in an abandoned house populated by 3 mischievous ghosts and one friendly one.'
-location: 'Maine, USA'
+bio: 'Application developer who interested in Machine Learning'
+location: 'Seoul, Republic of Korea'
 url: 'http://blog.naver.com/npng92'
 image: 'assets/images/casper.png'
 

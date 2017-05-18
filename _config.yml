@@ -11,17 +11,17 @@ name: 'Technical knowledge for everyone posting by JongWoo Yoon'
 description: "Application developer from somewhere"
 
 # Author's info
-author: 'Casper McFadden'
+author: 'JongWoo Yoon'
 # edit 'categories' in the front matter of every post to match this username
-nickname: casper
+nickname: kovermino
 bio: 'A paranormal expert and his daughter bunk in an abandoned house populated by 3 mischievous ghosts and one friendly one.'
 location: 'Maine, USA'
-url: 'http://biomadeira.github.io/jasper/'
+url: 'http://blog.naver.com/npng92'
 image: 'assets/images/casper.png'
 
 short_url: 'biomadeira.github.io/jasper/'
 google_analytics: UA-69281367-1
-disqus: username
+disqus: kovermino
 # edit baseurl to simply '/' if using as your personal page (instead of a project page)
 baseurl: /jasper/
 

@@ -7,8 +7,5 @@ logo: 'assets/images/ghost.png'
 current: about
 ---
 
-This is a demo blog for Ghost, it contains dummy content which allows you to click around and see what a Ghost blog running the default theme looks like.
-
-We use this for testing and for reference!
-
-If you'd like to set up your own blog, head on over to [https://ghost.org](https://ghost.org) and sign up.
+안녕하세요, 윤종우입니다.
+이것은 제가 깃허브 블로그에 포스팅하는 첫번째 글입니다.

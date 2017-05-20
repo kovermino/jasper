@@ -4,7 +4,7 @@ title: About
 class: 'post'
 navigation: True
 logo: 'assets/images/ghost.png'
-current: about
+current: 
 ---
 
 안녕하세요, 윤종우입니다.

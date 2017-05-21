@@ -1,7 +1,7 @@
 ---
 layout: post
 cover: false
-title: Python Numpy Library
+title: Java Exception Processing
 date:   2017-05-21 10:00:00
 tags: fiction
 subclass: 'post tag-fiction'

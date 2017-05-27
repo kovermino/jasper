@@ -27,18 +27,18 @@ categories: 'casper'
 
 회사에서 저는 **기간계 개발자**입니다. 시스템이 웹으로 되어있기 때문에 HTML과 javascript로 화면을 구성하고, java로 어플리케이션을 개발합니다. 그리고 SQL로 데이터를 조회합니다. 사용하는 언어들 이외에 툴들에 대한 공부도 필요합니다. 화면개발용 프레임워크는 그렇다쳐도 Spring기반의 자체 프레임워크와 오라클 데이터베이스를 사용하거든요. 낡은 기술이라고 볼 수도 있지만 기본기를 탄탄히 한다는 측면에서 한번씩 짚고 넘어가도 좋을것 같습니다. 제가 포스팅 하고자하는 내용은 다음과 같습니다.
 
-java
-python
-HTML
-javascript
-SQL(PL/SQL)
-Spring framework
-computer science
-Machine Learning Algorithm
-Deep Learning Architecture
-Reinforcement Learning Algorithm
-Optimization Algorithm
-tensorflow
+java  
+python  
+HTML  
+javascript  
+SQL(PL/SQL)  
+Spring framework  
+computer science  
+Machine Learning Algorithm  
+Deep Learning Architecture  
+Reinforcement Learning Algorithm  
+Optimization Algorithm  
+tensorflow  
 
 여기에 +@로 재무회계 및 금융프로그래밍도 포스팅하고 싶습니다.
 

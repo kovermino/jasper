@@ -155,6 +155,167 @@ _ _ _
 
 그러나 이렇게 연산마다 grdient descent를 수행하는 것은 효율적이지 않습니다. 게다가 1에폭만 학습을 수행하는 것도 아닙니다. 만약 위의 경우처럼 훈련 데이터가 60000개, 미니배치의 크기가 100라면 1에폭은 600번이지만 1에폭은 주로 정확도를 계산하는 주기를 위해 사용할 뿐 반복횟수는 따로 정해줍니다. 반복횟수는 iteration이라고 부르는데, 예컨대 10000번을 iteration으로 설정했다면 100개씩 10000번 매개변수값 갱신의 반복을 수행하는 동안 600번째마다 정확도를 계산합니다. 이것이 역전파를 사용하지 않았을때의 신경망 학습 알고리즘입니다.
 
+#### Two Layer Net
+_ _ _
+역전파를 살펴보기 전에 신경망이 어떻게 동작하는지 확실히 파악하는 기회를 갖는게 좋겠다는 생각이 들었습니다. 신경망 알고리즘의 그 유명한 오류역전파가 도대체 어떤 점이 좋은지를 이해하기 위해서는 역전파가 적용되기 전의 신경망 작동 원리를 이해하는 것이 중요하다고 생각했기 때문입니다. 파이썬으로 구현된 2층 신경망을 동작시키는 소스는 다음과 같습니다.
+
+
+train_neuralnet.py
+<pre><code>
+# coding: utf-8
+import sys, os
+sys.path.append(os.pardir)  # 부모 디렉터리의 파일을 가져올 수 있도록 설정
+import numpy as np
+import matplotlib.pyplot as plt
+from dataset.mnist import load_mnist
+from two_layer_net import TwoLayerNet
+
+# 데이터 읽기
+(x_train, t_train), (x_test, t_test) = load_mnist(normalize=True, one_hot_label=True)
+
+network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10)
+
+# 하이퍼파라미터
+iters_num = 10000  # 반복 횟수를 적절히 설정한다.
+train_size = x_train.shape[0]
+batch_size = 100   # 미니배치 크기
+learning_rate = 0.1
+
+train_loss_list = []
+train_acc_list = []
+test_acc_list = []
+
+# 1에폭당 반복 수
+iter_per_epoch = max(train_size / batch_size, 1)
+
+for i in range(iters_num):
+    # 미니배치 획득
+    batch_mask = np.random.choice(train_size, batch_size)
+    x_batch = x_train[batch_mask]
+    t_batch = t_train[batch_mask]
+    
+    # 기울기 계산
+    #grad = network.numerical_gradient(x_batch, t_batch)
+    grad = network.gradient(x_batch, t_batch)
+    
+    # 매개변수 갱신
+    for key in ('W1', 'b1', 'W2', 'b2'):
+        network.params[key] -= learning_rate * grad[key]
+    
+    # 학습 경과 기록
+    loss = network.loss(x_batch, t_batch)
+    train_loss_list.append(loss)
+    
+    # 1에폭당 정확도 계산
+    if i % iter_per_epoch == 0:
+        train_acc = network.accuracy(x_train, t_train)
+        test_acc = network.accuracy(x_test, t_test)
+        train_acc_list.append(train_acc)
+        test_acc_list.append(test_acc)
+        print("train acc, test acc | " + str(train_acc) + ", " + str(test_acc))
+
+# 그래프 그리기
+markers = {'train': 'o', 'test': 's'}
+x = np.arange(len(train_acc_list))
+plt.plot(x, train_acc_list, label='train acc')
+plt.plot(x, test_acc_list, label='test acc', linestyle='--')
+plt.xlabel("epochs")
+plt.ylabel("accuracy")
+plt.ylim(0, 1.0)
+plt.legend(loc='lower right')
+plt.show()
+</code></pre>
+
+
+TwoLayerNet.py
+
+<pre><code>
+# coding: utf-8 
+import sys, os 
+sys.path.append(os.pardir)  # 부모 디렉터리의 파일을 가져올 수 있도록 설정 
+from common.functions import * 
+from common.gradient import numerical_gradient 
+
+ 
+
+ 
+class TwoLayerNet: 
+
+ 
+     def __init__(self, input_size, hidden_size, output_size, weight_init_std=0.01): 
+         # 가중치 초기화 
+         self.params = {} 
+         self.params['W1'] = weight_init_std * np.random.randn(input_size, hidden_size) 
+         self.params['b1'] = np.zeros(hidden_size) 
+         self.params['W2'] = weight_init_std * np.random.randn(hidden_size, output_size) 
+         self.params['b2'] = np.zeros(output_size) 
+ 
+ 
+     def predict(self, x): 
+         W1, W2 = self.params['W1'], self.params['W2'] 
+         b1, b2 = self.params['b1'], self.params['b2'] 
+      
+         a1 = np.dot(x, W1) + b1 
+         z1 = sigmoid(a1) 
+         a2 = np.dot(z1, W2) + b2 
+         y = softmax(a2) 
+          
+         return y 
+          
+     # x : 입력 데이터, t : 정답 레이블 
+     def loss(self, x, t): 
+         y = self.predict(x) 
+          
+         return cross_entropy_error(y, t) 
+      
+     def accuracy(self, x, t): 
+         y = self.predict(x) 
+         y = np.argmax(y, axis=1) 
+         t = np.argmax(t, axis=1) 
+          
+         accuracy = np.sum(y == t) / float(x.shape[0]) 
+         return accuracy 
+          
+     # x : 입력 데이터, t : 정답 레이블 
+     def numerical_gradient(self, x, t): 
+         loss_W = lambda W: self.loss(x, t) 
+          
+         grads = {} 
+         grads['W1'] = numerical_gradient(loss_W, self.params['W1']) 
+         grads['b1'] = numerical_gradient(loss_W, self.params['b1']) 
+         grads['W2'] = numerical_gradient(loss_W, self.params['W2']) 
+         grads['b2'] = numerical_gradient(loss_W, self.params['b2']) 
+          
+         return grads 
+          
+     def gradient(self, x, t): 
+         W1, W2 = self.params['W1'], self.params['W2'] 
+         b1, b2 = self.params['b1'], self.params['b2'] 
+         grads = {} 
+          
+         batch_num = x.shape[0] 
+          
+         # forward 
+         a1 = np.dot(x, W1) + b1 
+         z1 = sigmoid(a1) 
+         a2 = np.dot(z1, W2) + b2 
+         y = softmax(a2) 
+          
+         # backward 
+         dy = (y - t) / batch_num 
+         grads['W2'] = np.dot(z1.T, dy) 
+         grads['b2'] = np.sum(dy, axis=0) 
+          
+         da1 = np.dot(dy, W2.T) 
+         dz1 = sigmoid_grad(a1) * da1 
+         grads['W1'] = np.dot(x.T, dz1) 
+         grads['b1'] = np.sum(dz1, axis=0) 
+ 
+ 
+         return grads 
+
+</code></pre>
+
 #### 역전파(backward propagation)
 _ _ _
 

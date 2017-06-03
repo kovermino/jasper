@@ -173,19 +173,20 @@ from two_layer_net import TwoLayerNet
 # 데이터 읽기
 (x_train, t_train), (x_test, t_test) = load_mnist(normalize=True, one_hot_label=True)
 
+# TwoLayerNet 객체 생성(입력층784 - 은닉층50 - 출력층10)
 network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10)
 
 # 하이퍼파라미터
-iters_num = 10000  # 반복 횟수를 적절히 설정한다.
-train_size = x_train.shape[0]
-batch_size = 100   # 미니배치 크기
-learning_rate = 0.1
+iters_num = 10000  				# 반복 횟수를 적절히 설정한다.(10000번)
+train_size = x_train.shape[0]   # 훈련데이터셋 개수 (60000개)
+batch_size = 100   				# 미니배치 크기 (100개)
+learning_rate = 0.1				# 학습률 (0.1)
 
 train_loss_list = []
 train_acc_list = []
 test_acc_list = []
 
-# 1에폭당 반복 수
+# 1에폭당 반복 수 (60000/100 = 600번이면 1에폭이고, 데이터를 한 번 다 순환한것으로 간주한다)
 iter_per_epoch = max(train_size / batch_size, 1)
 
 for i in range(iters_num):
@@ -237,15 +238,13 @@ from common.functions import *
 from common.gradient import numerical_gradient 
 
  
-
- 
 class TwoLayerNet: 
 
  
      def __init__(self, input_size, hidden_size, output_size, weight_init_std=0.01): 
          # 가중치 초기화 
          self.params = {} 
-         self.params['W1'] = weight_init_std * np.random.randn(input_size, hidden_size) 
+           self.params['W1'] = weight_init_std * np.random.randn(input_size, hidden_size) 
          self.params['b1'] = np.zeros(hidden_size) 
          self.params['W2'] = weight_init_std * np.random.randn(hidden_size, output_size) 
          self.params['b2'] = np.zeros(output_size) 
@@ -316,11 +315,71 @@ class TwoLayerNet:
 
 </code></pre>
 
+위에서 보여준 2층 신경망 소스가 가지고 있는 메서드는 다음과 같습니다.
+
+
+TwoLayerNet.py  
+
+
+| 메서드명 | 역할 |
+|--------|--------|
+|   init     |  가중치 초기화      |
+|   predict     |    예측수행    |
+|   loss     |  손실함수 값 계산      |
+|   accuracy     |   정확도 계산     |
+|   numerical_gradient     |   역전파 적용 전 기울기 값 계산    |
+|   gradient     |   역전파 적용 후 기울기 값 계산    |
+
+역전파를 적용하기 전에는 기울기를 어떻게 구하는지 한 번 봅시다. 2층 신경망이고, 미니배치의 크기는 100입니다.
+
+train_neuralnet.py소스를 보면 TwoLayerNet의 numerical_gradient 메서드에 x_batch와 t_batch를 던져줍니다. 각각은 60000개의 샘플에서 무작위로 선택된 100개의 features와 label입니다. 그렇기 때문에 작동원리를 알기 위해서는 TwoLayerNet으로 와서 numerical_gradient 메서드를 다시 봐야합니다. 여기서는 일단 x_batch를 통해 예측된 값과 t_batch값의 차이를 통해 loss function을 재정의합니다. 이 loss function은 predict와 cross_entropy_error의 계산을 포함하고 있습니다. 그리고 나서 각각의 가중치 값들에 대한 기울기를 구하는데, 여기서 헷갈릴 수 있는 점은 numerical_gradient 안에 있는 numerical_gradient 메서드는 재귀호출이 아니라 common 함수에 있는 numerical_gradient 라는 점입니다. 해당 함수의 소스는 다음과 같습니다.
+
+
+<pre><code>
+def numerical_gradient(f, x): 
+     h = 1e-4 # 0.0001 
+     grad = np.zeros_like(x) 
+      
+     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) 
+     while not it.finished: 
+         idx = it.multi_index 	# 다차원 배열의 인덱스를 튜플로 반환 
+         tmp_val = x[idx] 
+         x[idx] = float(tmp_val) + h 
+         fxh1 = f(x) # f(x+h) 
+          
+         x[idx] = tmp_val - h  
+         fxh2 = f(x) # f(x-h) 
+         grad[idx] = (fxh1 - fxh2) / (2*h) 
+          
+         x[idx] = tmp_val # 값 복원 
+         it.iternext()    
+          
+     return grad 
+</code></pre>
+
+그리고 크로스 엔트로피 오차를 구하는 함수는 다음과 같습니다.
+
+<pre><code>
+def cross_entropy_error(y, t): 
+     if y.ndim == 1: 
+         t = t.reshape(1, t.size) 
+         y = y.reshape(1, y.size) 
+          
+     # 훈련 데이터가 원-핫 벡터라면 정답 레이블의 인덱스로 반환 
+     if t.size == y.size: 
+         t = t.argmax(axis=1) 
+               
+     batch_size = y.shape[0] 
+     return -np.sum(np.log(y[np.arange(batch_size), t])) / batch_size 
+</code></pre>
+
+numerical_gradient에서는 x로 입력된 행렬의 각 요소를 한 번씩 순회하면서 함수에 대한 편미분 값(기울기)를 구합니다. 때문에 x의 요소 개수만큼 반복문을 돌게됩니다. 여기서는 각 가중치 행렬(W1, B1, W2, B2)이 순차로 들어왔기 때문에 가중치행렬의 요소 개수만큼(W1의 경우에는 (784,50) - 39200) 루프를 돌게 되겠지요. 이렇게 루프를 돌면 기울기 값이 계산되고, train_neuralnet.py에서는 iteration을 10000번으로 정해줬기 때문에 39200번 외에도 3개의 루프에 대한 루프를 10000번 돌게 되는 것입니다. 실제로 소스를 돌려보면 한 번 학습하는데 걸리는 시간이 매우 깁니다. 그래서 우리는 이것보다 더 효율적인 방법으로 기울기를 계산할 것입니다. 오류역전파를 적용한다는 것은 그런 의미입니다.
+
 #### 역전파(backward propagation)
 _ _ _
 
 
-
+ 
 
 
 

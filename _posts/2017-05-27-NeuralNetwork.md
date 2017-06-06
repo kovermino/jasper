@@ -109,7 +109,6 @@ a 노드의 출력값인 y는 곧 다음 층 노드의 입력값이 됩니다. �
 #### 손실함수(Loss function)
 _ _ _
 
-
 위에서 설명한 방법으로 가중치와 편향의 초기값을 정한 후에 해당 초기값을 이용한 모형으로 새로 입력된 데이터가 어떤 클래스에 속하는지 예측을 수행했다고 가정해봅시다. 예를들어 손으로 쓴 숫자 이미지 데이터를 0 ~ 9까지 중 하나로 분류하는 모형을 만들었는데 다음과 같은 데이터 9로 분류하지 않고 5로 분류했다면 신경망 모형의 정확도가 낮은 것으로 판단할 수 있습니다.  
 
 ![](assets/images/mnistnine.JPG)
@@ -133,7 +132,6 @@ t = (0, 1, 0, 0, 0, 0, 0, 0, 0, 0)
 #### 미니배치
 _ _ _
 
-
 그러면 신경망의 설계가 끝나고 초기값도 정했으며, 손실함수도 설정했다고 해봅시다. 기계학습 문제는 훈련 데이터(training set)를 이용하여 학습합니다. 더 구체적으로 말하면 훈련 데이터에 대한 손실함수 값을 구하고, 그 값을 최대한 줄여주는 매개변수를 찾아냅니다. 이렇게 하려면 모든 훈련 데이터를 대상으로 손실함수 값을 구해야합니다. 즉, 훈련 데이터가 100개 있으면 그로부터 계산한 100개의 손실함수 값들의 합을 지표로 삼는 것입니다. 그러나 데이터의 크기가 커지면 훈련 데이터로 설정한 모든 데이터에 대해서 손실함수 값을 구하는데 시간이 오래걸립니다. 때문에 미니배치로 특정 숫자를 정해놓고 미니배치의 크기만큼 훈련 데이터를 랜덤 샘플링해서 해당 데이터에 대해서 학습을 진행하는 것입니다.
 
 예를 들어 70000개의 데이터가 있을때 60000개를 훈련데이터로 정했고 미니배치 크기를 100으로 정했다면 60000개 중 100개를 무작위로 뽑아 100개에 대한 손실함수를 계산하고, 계산된 손실함수 값에 대해서 매개변수의 최적화를 수행하게 되는 것입니다.
@@ -141,7 +139,6 @@ _ _ _
 
 #### 최적화(optimization - gradient descent)
 _ _ _
-
 
 그렇다면 손실함수의 값이 최소가 되는 매개변수(가중치와 편향)는 어떻게 찾을까요? 앞서 잠시 이야기했듯 미분을 이용해야 합니다. 일반적으로 신경망은 수많은 가중치와 편향 값들에 의해 예측된 값과 실제 값을 기반으로 손실함수를 구하도록 설계되어 있습니다. 그래서 수학적으로 보면 매개변수 값들을 손실함수가 작아지는 방향으로 갱신하는 문제는 각각의 매개변수 값들에 대한 편미분을 구하고, 거기에 아주 작은 값을 곱해서 갱신 값을 만들어 원래의 매개변수에 더해주는 것으로 해결할 수 있습니다. 수식으로 보면 다음과 같습니다.  
 
@@ -157,6 +154,7 @@ _ _ _
 
 #### Two Layer Net
 _ _ _
+
 역전파를 살펴보기 전에 신경망이 어떻게 동작하는지 확실히 파악하는 기회를 갖는게 좋겠다는 생각이 들었습니다. 신경망 알고리즘의 그 유명한 오류역전파가 도대체 어떤 점이 좋은지를 이해하기 위해서는 역전파가 적용되기 전의 신경망 작동 원리를 이해하는 것이 중요하다고 생각했기 때문입니다. 파이썬으로 구현된 2층 신경망을 동작시키는 소스는 다음과 같습니다.
 
 
@@ -286,32 +284,6 @@ class TwoLayerNet:
          grads['b2'] = numerical_gradient(loss_W, self.params['b2']) 
           
          return grads 
-          
-     def gradient(self, x, t): 
-         W1, W2 = self.params['W1'], self.params['W2'] 
-         b1, b2 = self.params['b1'], self.params['b2'] 
-         grads = {} 
-          
-         batch_num = x.shape[0] 
-          
-         # forward 
-         a1 = np.dot(x, W1) + b1 
-         z1 = sigmoid(a1) 
-         a2 = np.dot(z1, W2) + b2 
-         y = softmax(a2) 
-          
-         # backward 
-         dy = (y - t) / batch_num 
-         grads['W2'] = np.dot(z1.T, dy) 
-         grads['b2'] = np.sum(dy, axis=0) 
-          
-         da1 = np.dot(dy, W2.T) 
-         dz1 = sigmoid_grad(a1) * da1 
-         grads['W1'] = np.dot(x.T, dz1) 
-         grads['b1'] = np.sum(dz1, axis=0) 
- 
- 
-         return grads 
 
 </code></pre>
 
@@ -378,10 +350,262 @@ numerical_gradient에서는 x로 입력된 행렬의 각 요소를 한 번씩 �
 #### 역전파(backward propagation)
 _ _ _
 
+'밑바닥부터 시작하는 딥러닝'에서는 오차역전파(backpropagation)를 계산그래프로 설명하고 있습니다. 계산그래프를 이용하는 이점은 첫째로 국소적 계산이 가능하다는 것이고, 둘째로 중간계산결과를 모두 보관할 수 있다는 것입니다. 우리가 구하고자 하는 것은 무엇인가요? 가중치의 변화에 따른 손실함수값의 변화입니다. 가중치값의 순간변화량에 대한 손실함수의 순간변화량, 즉 미분값이죠. 계산그래프를 통해서 보면, 우리가 국소적 미분의 전달을 통해 전체 미분을 구할 수 있다는 사실을 알 수 있습니다. 계산그래프를 하나하나 설명하지는 않겠습니다. 이 포스팅에서는 역전파가 신경망 안에서 어떻게 구현되었는지에만 초점을 맞추겠지만, 정말 기초적인 원리부터 알고싶다면 '밑바닥부터 시작하는 딥러닝'의 오차역전파법 챕터를 참고하시면 좋을 것입니다. 역전파의 핵심은 미분값을 순전파의 반대방향으로 전달하는 것이기 때문에 곱셈노드의 역전파와 함수노드의 역전파 그림을 잠시 보고 넘어가겠습니다.
+
+![](assets/images/mulbackward.JPG)
+
+![](assets/images/funcbackward.JPG)
+
+우리가 하는 계산들의 종류는 사칙연산이라고는 하지만 뺄셈은 덧셈으로, 나눗셈은 곱셈으로 모두 표현이 가능합니다. 여기서는 덧셈과 곱셈의 역전파를 구현함으로써 모든 연산에 대한 역전파를 실행할 수 있도록 합니다. 신경망에서 우리가 어떤 연산을 수행했었는지 기억하실겁니다. 입력값들과 가중치의 행렬곱(내적) 연산을 수행한 이후에 편향을 더해서 a값을 도출해내고, a값을 정의역으로 하는 ReLu function을 사용하여 y값을 계산하고 이를 다음 은닉층의 입력값으로 보내주었습니다. 그럼 하나의 층에서는 곱셈+덧셈+함수연산 이 일어난다는 사실이 이해가 가실겁니다. 이 함수연산은 또한 조건에 따른 덧셈과 곱셈연산이겠지요. 그렇게때문에 역전파를 구현하기 위해서는 각각의 계층에 대한 모듈을 구현해야합니다. 이 내용을 표로 보면 다음과 같습니다.  
+
+
+| 연산 | 계층(모듈) |
+|--------|--------|
+| 행렬곱 + 편향 | Affine |
+| 활성함수  | ReLU 또는 Sigmoid |
+| 출력함수  | Softmax with loss |  
+
+이해를 위해서 Affine 모듈의 연산과정에 대한 그림을 보면 다음과 같습니다.
+
+![](assets/images/affinebackward.JPG)
+
+각 모듈에서는 forward(순전파)와 backward(역전파)를 모두 구현하게 됩니다. 그리하여 입력 데이터가 각 계층에서 순전파로 흘러감과 동시에 역전파로 기울기를 구해 값을 보내줄 수 있는 것입니다. 출력함수 모듈의 이름이 softmax with loss인 것은 softmax함수로 출력값(예측값)을 구한 이후에 정답레이블과 비교하여 교차엔트로피오차를 구하는 과정까지 포함되어있기 때문입니다. 역전파를 적용하기 전과 비교하면 어떨까요? 사실 저는 이 부분이 이해가 잘 가지 않아 한참을 생각해야 했습니다. 역전파가 왜 빠를까? 두 방법을 비교하는 직관적인 그림이 없어서 그랬던 것 같기도 합니다. 일단 역전파가 적용된 2층 신경망의 소스를 보며 이야기를 이어가겠습니다.
+
+
+train_neuralnet.py
+<pre><code>
+# coding: utf-8 
+import sys, os 
+sys.path.append(os.pardir) 
+
+
+import numpy as np 
+from dataset.mnist import load_mnist 
+from two_layer_net import TwoLayerNet 
 
  
+# 데이터 읽기 
+ (x_train, t_train), (x_test, t_test) = load_mnist(normalize=True, one_hot_label=True) 
+ 
+ 
+ network = TwoLayerNet(input_size=784, hidden_size=50, output_size=10) 
+ 
+ 
+ iters_num = 10000 
+ train_size = x_train.shape[0] 
+ batch_size = 100 
+ learning_rate = 0.1 
+ 
+ 
+ train_loss_list = [] 
+ train_acc_list = [] 
+ test_acc_list = [] 
+ 
+ 
+ iter_per_epoch = max(train_size / batch_size, 1) 
+ 
+ 
+ for i in range(iters_num): 
+     batch_mask = np.random.choice(train_size, batch_size) 
+     x_batch = x_train[batch_mask] 
+     t_batch = t_train[batch_mask] 
+      
+     # 기울기 계산 
+     #grad = network.numerical_gradient(x_batch, t_batch) # 수치 미분 방식 
+     grad = network.gradient(x_batch, t_batch) # 오차역전파법 방식(훨씬 빠르다) 
+      
+     # 갱신 
+     for key in ('W1', 'b1', 'W2', 'b2'): 
+         network.params[key] -= learning_rate * grad[key] 
+      
+     loss = network.loss(x_batch, t_batch) 
+     train_loss_list.append(loss) 
+      
+     if i % iter_per_epoch == 0: 
+         train_acc = network.accuracy(x_train, t_train) 
+         test_acc = network.accuracy(x_test, t_test) 
+         train_acc_list.append(train_acc) 
+         test_acc_list.append(test_acc) 
+         print(train_acc, test_acc) 
+         
+</code></pre>
+
+train_neuralnet.py은 앞에서 구현했던 것과 차이가 없습니다. 다만 TwoLayerNet에서 numerical_gradient메서드 대신에 gradient에서드를 사용하는 것만 바뀌었습니다. 그렇다면 TwoLayerNet.py는 어떨까요? 여기에는 많은 변화가 있습니다.
 
 
+TwoLayerNet.py
+<pre><code>
+# coding: utf-8 
+import sys, os 
+sys.path.append(os.pardir)  # 부모 디렉터리의 파일을 가져올 수 있도록 설정 
+import numpy as np 
+from common.layers import * 
+from common.gradient import numerical_gradient 
+from collections import OrderedDict 
+ 
+ class TwoLayerNet: 
+ 
+ 
+     def __init__(self, input_size, hidden_size, output_size, weight_init_std = 0.01): 
+         # 가중치 초기화 
+         self.params = {} 
+         self.params['W1'] = weight_init_std * np.random.randn(input_size, hidden_size) 
+         self.params['b1'] = np.zeros(hidden_size) 
+         self.params['W2'] = weight_init_std * np.random.randn(hidden_size, output_size)  
+         self.params['b2'] = np.zeros(output_size) 
+ 
+         # 계층 생성 
+         self.layers = OrderedDict() 
+         self.layers['Affine1'] = Affine(self.params['W1'], self.params['b1']) 
+         self.layers['Relu1'] = Relu() 
+         self.layers['Affine2'] = Affine(self.params['W2'], self.params['b2']) 
+ 
+         self.lastLayer = SoftmaxWithLoss() 
+          
+     def predict(self, x): 
+         for layer in self.layers.values(): 
+             x = layer.forward(x) 
+          
+         return x 
+          
+     # x : 입력 데이터, t : 정답 레이블 
+     def loss(self, x, t): 
+         y = self.predict(x) 
+         return self.lastLayer.forward(y, t) 
+      
+     def accuracy(self, x, t): 
+         y = self.predict(x) 
+         y = np.argmax(y, axis=1) 
+         if t.ndim != 1 : t = np.argmax(t, axis=1) 
+          
+         accuracy = np.sum(y == t) / float(x.shape[0]) 
+         return accuracy 
+          
+     # x : 입력 데이터, t : 정답 레이블 
+     def gradient(self, x, t): 
+         # forward 
+         self.loss(x, t) 
+ 
+         # backward 
+         dout = 1 
+         dout = self.lastLayer.backward(dout) 
+          
+         layers = list(self.layers.values()) 
+         layers.reverse() 
+         for layer in layers: 
+             dout = layer.backward(dout) 
+ 
+ 
+         # 결과 저장 
+         grads = {} 
+         grads['W1'], grads['b1'] = self.layers['Affine1'].dW, self.layers['Affine1'].db 
+         grads['W2'], grads['b2'] = self.layers['Affine2'].dW, self.layers['Affine2'].db 
+ 
+         return grads 
+
+</code></pre>
+
+
+우션 계층 생성단계가 추가되었습니다. 각 계층에 대한 계산 모듈을 따로 구현했기 때문에 이러한 모듈을 조립해서 신경망을 구성하는 일이 가능해진 것입니다. 그리고 numerical_gradient의 자리를 gradient가 대체했습니다. 미분값으로 처음에 1을 전달해주면 각 계층들에 대해 루프를 돌면서 backward를 호출하여 국소적 미분값의 전달을 통해 최초에 입력된 변수에 대한 미분값(기울기)을 구하게 됩니다. 각 계층의 구현 소스는 다음과 같습니다.
+
+common/Layer.py 의 일부
+<pre><code>
+# coding: utf-8 
+import numpy as np 
+from common.functions import * 
+from common.util import im2col, col2im 
+
+class Relu: 
+    def __init__(self): 
+        self.mask = None 
+
+
+     def forward(self, x): 
+         self.mask = (x <= 0) 
+         out = x.copy() 
+         out[self.mask] = 0 
+
+         return out 
+ 
+     def backward(self, dout): 
+         dout[self.mask] = 0 
+         dx = dout 
+ 
+         return dx 
+
+ class Sigmoid: 
+     def __init__(self): 
+         self.out = None 
+ 
+ 
+     def forward(self, x): 
+         out = sigmoid(x) 
+         self.out = out 
+         return out 
+ 
+     def backward(self, dout): 
+         dx = dout * (1.0 - self.out) * self.out 
+ 
+         return dx 
+ 
+ class Affine: 
+     def __init__(self, W, b): 
+         self.W = W 
+         self.b = b 
+          
+         self.x = None 
+         self.original_x_shape = None 
+         # 가중치와 편향 매개변수의 미분 
+         self.dW = None 
+         self.db = None 
+ 
+     def forward(self, x): 
+         # 텐서 대응 
+         self.original_x_shape = x.shape 
+         x = x.reshape(x.shape[0], -1) 
+         self.x = x 
+ 
+
+         out = np.dot(self.x, self.W) + self.b 
+ 
+         return out 
+ 
+     def backward(self, dout): 
+         dx = np.dot(dout, self.W.T) 
+         self.dW = np.dot(self.x.T, dout) 
+         self.db = np.sum(dout, axis=0) 
+          
+         dx = dx.reshape(*self.original_x_shape)  # 입력 데이터 모양 변경(텐서 대응) 
+         return dx 
+
+ class SoftmaxWithLoss: 
+     def __init__(self): 
+         self.loss = None # 손실함수 
+         self.y = None    # softmax의 출력 
+         self.t = None    # 정답 레이블(원-핫 인코딩 형태) 
+          
+     def forward(self, x, t): 
+         self.t = t 
+         self.y = softmax(x) 
+         self.loss = cross_entropy_error(self.y, self.t) 
+          
+         return self.loss 
+ 
+     def backward(self, dout=1): 
+         batch_size = self.t.shape[0] 
+         if self.t.size == self.y.size: # 정답 레이블이 원-핫 인코딩 형태일 때 
+             dx = (self.y - self.t) / batch_size 
+         else: 
+             dx = self.y.copy() 
+             dx[np.arange(batch_size), self.t] -= 1 
+             dx = dx / batch_size 
+          
+         return dx 
+</code></pre>
+
+역전파를 사용하기 전에는 초기화된 가중치를 이용해서 배치 데이터로 일단 예측을 수행한 이후에, 해당 가중치 행렬을 하나씩 집어넣어 각 요소에 대해서 루프를 돌면서 수치미분 메서드를 통해 편미분 값을 구했습니다. 그러나 역전파를 적용하고 나서는 각 계층의 역전파를 통해 행렬값이 흐르면서 기울기값을 계산해서 리턴해줍니다. 실제로 각 소스코드를 실행시켜보면 역전파를 적용한 소스의 학습이 훨씬 빠르다는 것을 알 수 있습니다.
+
+이와같이 신경망에서는 역전파를 이용하여 기울기를 효율적으로 구합니다. 그리고 계층단위의 모듈을 구현하는 것은 기울기의 효율적 계산뿐 만아니라 원하는 설계대로 각 모듈들을 조립하여 신경망을 구현할 수 있게 해줍니다. 이번 포스팅에서는 2층 신경망만을 다뤘지만, 다음 포스팅에서는 CNN과 RNN, 그리고 층을 깊게한 deep neural network에 대해서 이야기해보겠습니다.
 
 http://blog.naver.com/yhbest12/220973959969
 
